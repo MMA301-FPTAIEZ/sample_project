@@ -1,6 +1,6 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import HomePage from '../screens/HomePage';
+import HomePage from '../HomePage';
 
 const Tabs = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -9,6 +9,7 @@ const BottomTabs = () => {
   return (
     <Tabs.Navigator>
       <Tabs.Screen name="Home" component={HomePage} />
+      <Tabs.Screen name="About" component={HomePage} />
     </Tabs.Navigator>
   );
 };
