@@ -5,15 +5,11 @@ import { Image } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useState } from 'react';
-import { ScrollView } from 'react-native-gesture-handler';
 
-const HomePage = () => {
+const Captain = () => {
   const navigation = useNavigation();
-  const { players, teams } = useAppContext();
+  const { players } = useAppContext();
   const [favoritePlayers, setFavoritePlayers] = useState([]);
-  const [chosenTeam, setChosenTeam] = useState('All');
-
-  const filteredPlayers = players.filter((player) => chosenTeam === 'All' || player.team === chosenTeam);
 
   const handleNavigateToProductDetail = (item) => {
     navigation.navigate('Detail', {
@@ -71,48 +67,8 @@ const HomePage = () => {
         Players List
       </Text>
 
-      <ScrollView
-        style={{
-          height: '100%',
-          maxHeight: 80,
-          marginBottom: 20,
-        }}
-        horizontal
-      >
-        {['All', ...(teams || [])].map((team) => (
-          <TouchableOpacity
-            key={team}
-            onPress={() => setChosenTeam(team)}
-            activeOpacity={0.7}
-            style={{
-              paddingVertical: 10,
-              paddingHorizontal: 20,
-              backgroundColor: chosenTeam === team ? '#e0e0e0' : '#ffffff',
-              borderRadius: 8,
-              margin: 5,
-              minWidth: 100,
-              alignItems: 'center',
-              shadowColor: '#000',
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 2,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 16,
-                color: chosenTeam === team ? '#000' : '#333',
-                fontWeight: chosenTeam === team ? '600' : '400',
-              }}
-            >
-              {team}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
       <FlatList
-        data={filteredPlayers}
+        data={players.filter((player) => player.isCaptain && 2025 - player.YoB > 34)}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={{ padding: 10, borderBottomWidth: 1, borderColor: '#ccc', backgroundColor: '#fff', flexDirection: 'row' }}>
@@ -158,4 +114,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default Captain;

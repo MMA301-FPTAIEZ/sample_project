@@ -1,52 +1,51 @@
 import { View, Text, TouchableOpacity, Alert, Pressable } from 'react-native';
-import { useAppContext } from '../provider/AppProvider';
 import { FlatList } from 'react-native';
 import { Image } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { useCallback, useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useCallback, useState } from 'react';
 
 const Favorite = () => {
   const navigation = useNavigation();
-  const [favoriteProducts, setFavoriteProducts] = useState([]);
+  const [favoritePlayers, setFavoritePlayers] = useState([]);
 
   const handleNavigateToProductDetail = (item) => {
-    navigation.navigate('ProductDetail', { product: item });
+    navigation.navigate('Detail', {
+      player: {
+        ...item,
+        isFavorite: favoritePlayers.some((player) => player.id === item.id),
+      },
+    });
   };
 
-  const fetchFavorite = async () => {
-    const favorites = await AsyncStorage.getItem('favorites_products');
-    const favoritesArray = favorites ? JSON.parse(favorites) : [];
-    setFavoriteProducts(favoritesArray);
+  const fetchFavoritePlayers = async () => {
+    const favoritePlayers = await AsyncStorage.getItem('favoritePlayers');
+    setFavoritePlayers(favoritePlayers ? JSON.parse(favoritePlayers) : []);
   };
-  useFocusEffect(
-    useCallback(() => {
-      fetchFavorite();
-    }, []),
-  );
 
-  const handleClearFavorites = async () => {
-    Alert.alert('Confirm', 'Are you sure you want to clear all favorites?', [
-      { text: 'Cancel', style: 'cancel' },
+  const handleSaveToFavorites = async (item) => {
+    await Alert.alert('Confirm Action', `Are you sure you want to ${favoritePlayers.some((player) => player.id === item.id) ? 'remove' : 'add'} ${item.playerName} from favorites?`, [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
       {
         text: 'OK',
         onPress: async () => {
-          await AsyncStorage.removeItem('favorites_products');
-          Alert.alert('Success', 'All favorites cleared!');
-          fetchFavorite();
+          const newFavoriteList = favoritePlayers.filter((player) => player.id !== item.id);
+          setFavoritePlayers(newFavoriteList);
+
+          await AsyncStorage.setItem('favoritePlayers', JSON.stringify(newFavoriteList));
         },
       },
     ]);
   };
 
-  const handleRemoveFavorite = async (item) => {
-    const existingData = await AsyncStorage.getItem('favorites_products');
-    const favorites = existingData ? JSON.parse(existingData) : [];
-    const updatedFavorites = favorites.filter((favorite) => favorite.id !== item.id);
-    await AsyncStorage.setItem('favorites_products', JSON.stringify(updatedFavorites));
-    Alert.alert('Success', 'Product removed from favorites!');
-    fetchFavorite();
-  };
+  useFocusEffect(
+    useCallback(() => {
+      fetchFavoritePlayers();
+    }, []),
+  );
 
   return (
     <View
@@ -61,27 +60,15 @@ const Favorite = () => {
           fontWeight: 'bold',
           textAlign: 'center',
           marginBottom: 20,
+          marginTop: 20,
         }}
       >
-        My Jewelry Shop
+        Players List
       </Text>
 
-      <TouchableOpacity
-        style={{
-          backgroundColor: '#007BFF',
-          padding: 10,
-          borderRadius: 5,
-          marginBottom: 20,
-        }}
-      >
-        <Text style={{ color: '#fff', textAlign: 'center' }} onPress={handleClearFavorites}>
-          Clear Favorites
-        </Text>
-      </TouchableOpacity>
-
       <FlatList
-        data={favoriteProducts}
-        keyExtractor={(item, index) => item.id + index}
+        data={favoritePlayers}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={{ padding: 10, borderBottomWidth: 1, borderColor: '#ccc', backgroundColor: '#fff', flexDirection: 'row' }}>
             <Pressable onPress={() => handleNavigateToProductDetail(item)}>
@@ -99,13 +86,16 @@ const Favorite = () => {
               }}
             >
               <Pressable onPress={() => handleNavigateToProductDetail(item)}>
-                <Text style={{ fontSize: 14 }}>{item.jeName}</Text>
+                <Text style={{ fontSize: 14 }}>{item.playerName}</Text>
               </Pressable>
-              {item.percentOff > 0 && <Text style={{ fontSize: 14, color: 'red' }}>{item.percentOff * 100}% off</Text>}
+              {item.isCaptain && <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'red' }}>Captain</Text>}
+              <Text style={{ fontSize: 14, color: '#555' }}>Team: {item.team}</Text>
+              <Text style={{ fontSize: 14, color: '#555' }}>Position: {item.position}</Text>
+              <Text style={{ fontSize: 14, color: '#555' }}>Age: {2025 - item.YoB}</Text>
               <TouchableOpacity
                 style={{
-                  backgroundColor: '#007BFF',
-                  padding: 10,
+                  backgroundColor: favoritePlayers.some((player) => player.id === item.id) ? '#f00' : '#007bff',
+                  padding: 5,
                   borderRadius: 5,
                   marginTop: 10,
                 }}
@@ -113,20 +103,7 @@ const Favorite = () => {
                   handleSaveToFavorites(item);
                 }}
               >
-                <Text style={{ color: '#fff', textAlign: 'center' }}>Save To Favorites</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={{
-                  backgroundColor: '#007BFF',
-                  padding: 10,
-                  borderRadius: 5,
-                  marginTop: 10,
-                }}
-                onPress={() => {
-                  handleRemoveFavorite(item);
-                }}
-              >
-                <Text style={{ color: '#fff', textAlign: 'center' }}>Remove from Favorites</Text>
+                <Text style={{ color: '#fff', textAlign: 'center' }}>{favoritePlayers.some((player) => player.id === item.id) ? 'Remove from Favorites' : 'Save To Favorites'}</Text>
               </TouchableOpacity>
             </View>
           </View>
